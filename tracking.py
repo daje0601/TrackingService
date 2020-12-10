@@ -1,17 +1,26 @@
-import json
-import requests
+from urllib.parse import quote_plus
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from webdriver_manager.chrome import ChromeDriverManager
 
-headers = {
-	 "Content-Type" : "application / json" ,
-	 "Trackingmore-Api-Key" : "2e6f4905-ab10-4abd-8a5f-b1636127c3ae"
-}
+#우리가 원하는 사이트를 들어가서 사용자가 송장번호 입력할 수 있음 
+baseUrl = 'https://th.kerryexpress.com/th/track/?track='
+plusUrl = input("무엇을 검색할까요?:")
 
-url = "https://api.trackingmore.com/v2/carriers/"
-res = requests.get(url, headers=headers)
-tracker = BeautifulSoup(res.text, "lxml")
+#입력된 송장번호로 검색 
+url = baseUrl + quote_plus(plusUrl)
+driver = webdriver.Chrome(ChromeDriverManager().install())
+driver.get(url)
+driver.find_element_by_class_name('ke-btn-search').click()
 
-dict = tracker["json_object"]
-print(dict)
+#배송정보를 스크랩 
+html = driver.page_source
+soup = BeautifulSoup(html)
 
+tracking = soup.select(".d-flex.flex-column")
+for track_info in tracking:
+    print(track_info.select(".d-flex.flex-column.flex-sm-row.flex-fill.pl-3"))
+    print()
 
+driver.close()
